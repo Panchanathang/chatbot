@@ -1,7 +1,13 @@
 from flask import Flask, render_template, request, jsonify
 from meta_ai_api import MetaAI
 
+
 app = Flask(__name__)
+
+
+
+ai = MetaAI()
+
 
 # Serve the HTML file
 @app.route('/')
