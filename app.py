@@ -1,9 +1,10 @@
 from flask import Flask, render_template, request, jsonify
 from meta_ai_api import MetaAI
+from flask_cors import CORS
 
 
 app = Flask(__name__)
-
+CORS(app, resources={r"/*": {"origins": "https://chatbot-lsm1.onrender.com"}})
 
 
 ai = MetaAI()
