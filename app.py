@@ -1,26 +1,20 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+from flask import Flask, render_template, request, jsonify
 from meta_ai_api import MetaAI
-#import os 
 
 app = Flask(__name__)
-CORS(app) # <-- Enable CORS for all routes
 
-ai = MetaAI()
+# Serve the HTML file
+@app.route('/')
+def home():
+    return render_template('index.html')
 
-@app.route('/', methods=['GET'])
-def index():
-    return app.send_static_file('index.html')
-
+# API endpoint
 @app.route('/endpoint', methods=['POST'])
-def handle_chatbot_request():
-    message = request.json['message']
-    response = ai.prompt(message)
-    return jsonify({'response': response})
+def chatbot():
+    user_message = request.json.get('message')
+    # Assuming MetaAI class has a method to get a reply
+    bot_reply = MetaAI().get_reply(user_message)
+    return jsonify({'reply': bot_reply})
 
 if __name__ == '__main__':
-     app.run(debug=True)
-app.run(debug=True)
-#if __name__ == '__main__':
- #    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
- #app.listen(process.env.PORT || 5000)
+    app.run(host='0.0.0.0', port=5000)
