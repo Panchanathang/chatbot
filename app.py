@@ -10,11 +10,10 @@ def home():
 
 # API endpoint
 @app.route('/endpoint', methods=['POST'])
-def chatbot():
-    user_message = request.json.get('message')
-    # Assuming MetaAI class has a method to get a reply
-    bot_reply = MetaAI().get_reply(user_message)
-    return jsonify({'reply': bot_reply})
+def handle_chatbot_request():
+    message = request.json['message']
+    response = ai.prompt(message)
+    return jsonify({'response': response})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+     app.run(debug=True)
