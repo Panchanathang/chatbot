@@ -4,7 +4,7 @@ from flask_cors import CORS
 
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "https://chatbot-lsm1.onrender.com"}})
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 
 ai = MetaAI()
