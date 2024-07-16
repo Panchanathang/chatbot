@@ -2,6 +2,13 @@ from flask import Flask, render_template, request, jsonify
 from meta_ai_api import MetaAI
 from flask_cors import CORS
 import logging
+from main import MetaAI
+import sys
+import os
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+src_dir = os.path.dirname(current_dir)
+sys.path.insert(0, src_dir)
 
 
 app = Flask(__name__)
@@ -26,8 +33,8 @@ def handle_chatbot_request():
     return jsonify({'response': response})
 
 
-#if __name__ == '__main__':
+if __name__ == '__main__':
  #    app.run(debug=True)
 
-if __name__ == '__main__':
+#if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
