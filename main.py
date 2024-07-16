@@ -176,26 +176,35 @@ class MetaAI:
 
         response = self.session.post(url, headers=headers, data=payload, stream=stream)
         if not stream:
-            raw_response = response.text
-            last_streamed_response = self.extract_last_response(raw_response)
-            if not last_streamed_response:
+            try:
+                raw_response = response.text
+                last_streamed_response = self.extract_last_response(raw_response)
+                if not last_streamed_response:
+                    return self.retry(message, stream=stream, attempts=attempts)
+
+                extracted_data = self.extract_data(last_streamed_response)
+                return extracted_data
+
+            except Exception as e:
+                logging.error(f"An error occurred while processing the prompt: {e}")
                 return self.retry(message, stream=stream, attempts=attempts)
-
-            extracted_data = self.extract_data(last_streamed_response)
-            return extracted_data
-
         else:
-            lines = response.iter_lines()
-            is_error = json.loads(next(lines))
-            if len(is_error.get("errors", [])) > 0:
+            try:
+                lines = response.iter_lines()
+                is_error = json.loads(next(lines))
+                if len(is_error.get("errors", [])) > 0:
+                    return self.retry(message, stream=stream, attempts=attempts)
+                return self.stream_response(lines)
+
+            except Exception as e:
+                logging.error(f"An error occurred while streaming the response: {e}")
                 return self.retry(message, stream=stream, attempts=attempts)
-            return self.stream_response(lines)
 
     def retry(self, message: str, stream: bool = False, attempts: int = 0):
         """
         Retries the prompt function if an error occurs.
         """
-        if attempts <= MAX_RETRIES:
+        if attempts < MAX_RETRIES:
             logging.warning(
                 f"Was unable to obtain a valid response from Meta AI. Retrying... Attempt {attempts + 1}/{MAX_RETRIES}."
             )
