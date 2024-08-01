@@ -1,29 +1,43 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
-from meta_ai_api import MetaAI
-import os 
+import os
+import logging
+from transformers import BlenderbotTokenizer, BlenderbotForConditionalGeneration
+
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
-CORS(app) # <-- Enable CORS for all routes
+CORS(app, resources={r"/*": {"origins": "*"}})
 
-ai = MetaAI()
+def get_meta_ai_response(prompt):
+model_name = "facebook/blenderbot-90M-distill"
+tokenizer = BlenderbotTokenizer.from_pretrained(model_name)
+model = BlenderbotForConditionalGeneration.from_pretrained(model_name)
+
+try:
+inputs = tokenizer(prompt, return_tensors="pt")
+reply_ids = model.generate(**inputs)
+response = tokenizer.decode(reply_ids[0], skip_special_tokens=True)
+return response
+except Exception as e:
+logging.error(f"Error getting response from Meta AI model: {e}")
+return "I'm sorry, I couldn't process your request at the moment."
 
 @app.route('/')
-def index():
-    return render_template('index.html')
+def home():
+return render_template('index.html')
 
 @app.route('/chatbot', methods=['POST'])
 def handle_chatbot_request():
-    message = request.json['message']
-    try:
-        response = ai.prompt(message)
-        print(f"API Response: {response}")
-        return jsonify({'response': response})
-    except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({'error': 'Failed to obtain a response from Meta AI'})
-if __name__ == '__main__':
-     app.run(debug=True)
+message = request.json.get('message', '').lower()
+if not message:
+logging.error("No message provided in request")
+return jsonify({'error': 'No message provided'}), 400
 
-# if __name__ == '__main__':
-#     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+response = get_meta_ai_response(message)
+return jsonify({'response': response})
+
+if __name__ == '__main__':
+port = int(os.environ.get("PORT", 5000))
+app.run(debug=True, host='0.0.0.0', port=port)
