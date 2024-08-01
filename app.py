@@ -15,9 +15,13 @@ def index():
 @app.route('/chatbot', methods=['POST'])
 def handle_chatbot_request():
     message = request.json['message']
-    response = ai.prompt(message)
-    return jsonify({'response': response})
-
+    try:
+        response = ai.prompt(message)
+        print(f"API Response: {response}")
+        return jsonify({'response': response})
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({'error': 'Failed to obtain a response from Meta AI'})
 if __name__ == '__main__':
      app.run(debug=True)
 
